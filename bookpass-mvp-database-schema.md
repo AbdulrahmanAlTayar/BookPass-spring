@@ -1,7 +1,5 @@
 # Bookpass MVP - Database Schema
 
-Payment enabled, Cart removed
-
 ## Schema Diagram
 
 ```mermaid
