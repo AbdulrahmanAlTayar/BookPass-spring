@@ -41,11 +41,19 @@ public class User {
     @Column(name = "profile_picture", columnDefinition = "TEXT")
     private String profilePicture;
 
-    @Column(name = "average_rating")
-    private BigDecimal averageRating = BigDecimal.ZERO;
+    // معلومات المكتبة (فقط إذا role = BOOKSTORE)
+    @Column(name = "store_name")
+    private String storeName;
+
+    @Column(name = "store_address")
+    private String storeAddress;
+
+    // تقييم البائع
+    @Column(name = "seller_rating")
+    private BigDecimal sellerRating;
 
     @Column(nullable = false)
-    private String role = "USER";
+    private String role = "CUSTOMER"; // CUSTOMER, BOOKSTORE, ADMIN
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

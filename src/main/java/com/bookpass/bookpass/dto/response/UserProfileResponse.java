@@ -14,7 +14,12 @@ public class UserProfileResponse {
     private String lastName;
     private String phoneNumber;
     private String profilePicture;
-    private BigDecimal averageRating;
     private String role;
+    private BigDecimal sellerRating;
+
+    // معلومات المكتبة (إذا role = BOOKSTORE)
+    private String storeName;
+    private String storeAddress;
+
     private LocalDateTime createdAt;
 }
