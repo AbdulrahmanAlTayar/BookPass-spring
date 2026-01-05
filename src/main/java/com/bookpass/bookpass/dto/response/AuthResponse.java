@@ -3,6 +3,8 @@ package com.bookpass.bookpass.dto.response;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+import java.math.BigDecimal;
+
 @Data
 @AllArgsConstructor
 public class AuthResponse {
@@ -11,4 +13,5 @@ public class AuthResponse {
     private String firstName;
     private String lastName;
     private String role;
+    private BigDecimal sellerRating;
 }

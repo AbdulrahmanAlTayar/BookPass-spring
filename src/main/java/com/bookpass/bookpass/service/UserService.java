@@ -22,8 +22,10 @@ public class UserService {
                 user.getLastName(),
                 user.getPhoneNumber(),
                 user.getProfilePicture(),
-                user.getAverageRating(),
                 user.getRole(),
+                user.getSellerRating(),
+                user.getStoreName(),
+                user.getStoreAddress(),
                 user.getCreatedAt()
         );
     }
