@@ -19,17 +19,20 @@ public class RegisterRequest {
 
     @NotBlank(message = "Role is required")
     @Pattern(regexp = "CUSTOMER|BOOKSTORE", message = "Role must be CUSTOMER or BOOKSTORE")
-    private String role; // CUSTOMER أو BOOKSTORE
+    private String role;
 
     private String firstName;
     private String lastName;
-
-    @NotBlank(message = "Phone number is required")
     private String phoneNumber;
 
     private String profilePicture;
 
-    // معلومات المكتبة (مطلوبة فقط إذا role = BOOKSTORE)
+    // موقع المستخدم (للطلاب والمكاتب)
+    private Double latitude;
+    private Double longitude;
+    private String address; // عنوان نصي
+
+    // معلومات المكتبة (مطلوبة إذا role = BOOKSTORE)
     private String storeName;
     private String storeAddress;
 }

@@ -41,12 +41,27 @@ public class User {
     @Column(name = "profile_picture", columnDefinition = "TEXT")
     private String profilePicture;
 
-    // معلومات المكتبة (فقط إذا role = BOOKSTORE)
+    // موقع المستخدم
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
+    @Column(name = "address")
+    private String address;
+
     @Column(name = "store_name")
     private String storeName;
 
     @Column(name = "store_address")
     private String storeAddress;
+
+    @Column(name = "store_latitude")
+    private Double storeLatitude;
+
+    @Column(name = "store_longitude")
+    private Double storeLongitude;
 
     // تقييم البائع
     @Column(name = "seller_rating")
