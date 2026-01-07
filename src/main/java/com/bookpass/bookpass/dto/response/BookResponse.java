@@ -30,5 +30,10 @@ public class BookResponse {
     private String sellerName;
     private String sellerPhone;
 
+    // Buyer info
+    private UUID buyerId;
+    private String buyerName;
+    private String buyerPhone;
+
     private LocalDateTime createdAt;
 }

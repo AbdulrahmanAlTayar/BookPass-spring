@@ -22,6 +22,5 @@ public class AddBookRequest {
     private String author;
     private String isbn;
     private String university;
-    private String condition; // Book condition: جديد, ممتاز, جيد جداً, جيد, مقبول
     private String bookImages; // JSON array of URLs
 }

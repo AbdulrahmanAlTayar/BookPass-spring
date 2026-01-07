@@ -37,6 +37,7 @@ public class Book {
     private BigDecimal price;
 
     @Column(nullable = false)
+    @jakarta.validation.constraints.Pattern(regexp = "AVAILABLE|PENDING|SOLD|PICKED", message = "Status must be AVAILABLE, PENDING, SOLD, or PICKED")
     private String status = "PENDING";
 
     @Column(name = "author")
@@ -58,6 +59,7 @@ public class Book {
 
     // حالة الكتاب بعد مراجعة المكتبة
     @Column(name = "book_condition")
+    @jakarta.validation.constraints.Pattern(regexp = "excellent|very good|good|poor|PENDING", message = "Condition must be excellent, very good, good, poor, or PENDING")
     private String bookCondition;
 
     @ManyToOne(fetch = FetchType.LAZY)

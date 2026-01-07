@@ -1,6 +1,7 @@
 package com.bookpass.bookpass.service;
 
 import com.bookpass.bookpass.dto.request.AddBookRequest;
+import com.bookpass.bookpass.dto.request.ReviewBookRequest;
 import com.bookpass.bookpass.dto.response.BookResponse;
 import com.bookpass.bookpass.entity.Book;
 import com.bookpass.bookpass.entity.User;
@@ -19,6 +20,7 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final UserRepository userRepository;
+    private final com.bookpass.bookpass.repository.TransactionRepository transactionRepository;
 
     /**
      * Student adds a book for sale
@@ -35,9 +37,24 @@ public class BookService {
         book.setAuthor(request.getAuthor());
         book.setIsbn(request.getIsbn());
         book.setUniversity(request.getUniversity());
-        book.setBookCondition(request.getCondition());
+        book.setUniversity(request.getUniversity());
+        book.setBookCondition("PENDING"); // Default condition until reviewed
         book.setBookImages(request.getBookImages());
-        book.setStatus("AVAILABLE"); // Make it available immediately for now
+        book.setStatus("PENDING"); // Needs review before being available
+
+        // Auto-assign to University Reviewer
+        if (request.getUniversity() != null) {
+            String uniName = request.getUniversity();
+            // Find allowed university from constants (simple case-insensitive match on name or acronym)
+            java.util.Optional<com.bookpass.bookpass.constants.SaudiUniversities> match = java.util.Arrays.stream(com.bookpass.bookpass.constants.SaudiUniversities.values())
+                    .filter(u -> u.getName().equalsIgnoreCase(uniName) || u.getAcronym().equalsIgnoreCase(uniName))
+                    .findFirst();
+
+            if (match.isPresent()) {
+                String reviewerEmail = "reviewer@" + match.get().getEmailDomain();
+                userRepository.findByEmail(reviewerEmail).ifPresent(book::setAssignedBookstore);
+            }
+        }
 
         bookRepository.save(book);
 
@@ -95,6 +112,86 @@ public class BookService {
                 .stream()
                 .map(this::mapToBookResponse)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Get pending books for current Bookstore Reviewer
+     */
+    public List<BookResponse> getStorePendingBooks(String email) {
+        User bookstore = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        return bookRepository.findByAssignedBookstore_UserIdAndStatusOrderByCreatedAtDesc(bookstore.getUserId(), "PENDING")
+                .stream()
+                .map(this::mapToBookResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Get sold books for current Bookstore Reviewer (with buyer info)
+     */
+    public List<BookResponse> getStoreSoldBooks(String email) {
+        User bookstore = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        
+        // Fetch transactions for this store's sold books
+        return transactionRepository.findByBook_AssignedBookstore_UserIdAndBook_StatusOrderByCreatedAtDesc(bookstore.getUserId(), "SOLD")
+                .stream()
+                .map(transaction -> mapTransactionToBookResponse(transaction))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Review a book (Store Owner)
+     */
+    public BookResponse reviewBook(UUID bookId, String userEmail, ReviewBookRequest request) {
+        User bookstore = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        // Verify assignment
+        if (book.getAssignedBookstore() == null || !book.getAssignedBookstore().getUserId().equals(bookstore.getUserId())) {
+             throw new RuntimeException("Not authorized to review this book");
+        }
+
+        book.setBookCondition(request.getCondition());
+        book.setReviewNotes(request.getReviewNotes());
+        book.setReviewedBy(bookstore);
+        book.setReviewedAt(java.time.LocalDateTime.now());
+        
+        // Once reviewed, it becomes AVAILABLE
+        book.setStatus("AVAILABLE");
+
+        bookRepository.save(book);
+        return mapToBookResponse(book);
+    }
+
+    /**
+     * Mark a book as PICKED (Store Owner) - for books that were SOLD
+     */
+    public BookResponse markAsPicked(UUID bookId, String userEmail) {
+        User bookstore = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Book book = bookRepository.findById(bookId)
+                .orElseThrow(() -> new RuntimeException("Book not found"));
+
+        // Verify assignment
+        if (book.getAssignedBookstore() == null || !book.getAssignedBookstore().getUserId().equals(bookstore.getUserId())) {
+            throw new RuntimeException("Not authorized to manage this book");
+        }
+
+        // Only SOLD books can be picked up
+        if (!"SOLD".equals(book.getStatus())) {
+            throw new RuntimeException("Only SOLD books can be marked as PICKED");
+        }
+
+        book.setStatus("PICKED");
+        book.setUpdatedAt(java.time.LocalDateTime.now());
+
+        bookRepository.save(book);
+        return mapToBookResponse(book);
     }
 
     /**
@@ -183,6 +280,21 @@ public class BookService {
         response.setSellerName(book.getSeller().getFirstName() + " " + book.getSeller().getLastName());
         response.setSellerPhone(book.getSeller().getPhoneNumber());
         response.setCreatedAt(book.getCreatedAt());
+
+        // Note: Buyer info is no longer on the Book entity.
+        // It is fetched via Transaction for specific endpoints.
+
+        return response;
+    }
+
+    public BookResponse mapTransactionToBookResponse(com.bookpass.bookpass.entity.Transaction transaction) {
+        BookResponse response = mapToBookResponse(transaction.getBook());
+        // Override buyer info from transaction
+        if (transaction.getBuyer() != null) {
+            response.setBuyerId(transaction.getBuyer().getUserId());
+            response.setBuyerName(transaction.getBuyer().getFirstName() + " " + transaction.getBuyer().getLastName());
+            response.setBuyerPhone(transaction.getBuyer().getPhoneNumber());
+        }
         return response;
     }
 }
