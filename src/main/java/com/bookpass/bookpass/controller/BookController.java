@@ -1,6 +1,7 @@
 package com.bookpass.bookpass.controller;
 
 import com.bookpass.bookpass.dto.request.AddBookRequest;
+import com.bookpass.bookpass.dto.request.ReviewBookRequest;
 import com.bookpass.bookpass.dto.response.BookResponse;
 import com.bookpass.bookpass.service.BookService;
 import jakarta.validation.Valid;
@@ -17,6 +18,7 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final com.bookpass.bookpass.service.TransactionService transactionService;
 
     @PostMapping
     public ResponseEntity<BookResponse> addBook(
@@ -44,6 +46,43 @@ public class BookController {
     @GetMapping("/pending")
     public ResponseEntity<List<BookResponse>> getPendingBooks() {
         return ResponseEntity.ok(bookService.getPendingBooks());
+    }
+
+    @GetMapping("/store/pending")
+    public ResponseEntity<List<BookResponse>> getStorePendingBooks(Principal principal) {
+        return ResponseEntity.ok(bookService.getStorePendingBooks(principal.getName()));
+    }
+
+    @GetMapping("/store/sold")
+    public ResponseEntity<List<BookResponse>> getStoreSoldBooks(Principal principal) {
+        return ResponseEntity.ok(bookService.getStoreSoldBooks(principal.getName()));
+    }
+
+    @PutMapping("/{id}/review")
+    public ResponseEntity<BookResponse> reviewBook(
+            @PathVariable java.util.UUID id,
+            @Valid @RequestBody ReviewBookRequest request,
+            Principal principal) {
+        return ResponseEntity.ok(bookService.reviewBook(id, principal.getName(), request));
+    }
+
+    @PutMapping("/{id}/picked")
+    public ResponseEntity<BookResponse> markAsPicked(
+            @PathVariable java.util.UUID id,
+            Principal principal) {
+        return ResponseEntity.ok(bookService.markAsPicked(id, principal.getName()));
+    }
+
+    @PutMapping("/{id}/purchase")
+    public ResponseEntity<BookResponse> purchaseBook(
+            @PathVariable java.util.UUID id,
+            @Valid @RequestBody com.bookpass.bookpass.dto.request.PurchaseRequest request,
+            Principal principal) {
+        // Delegate to TransactionService to handle logic and Moyasar check
+        com.bookpass.bookpass.entity.Transaction transaction = transactionService.purchaseBook(id, principal.getName(), request.getPaymentId());
+        
+        // Map transaction back to BookResponse using helper
+        return ResponseEntity.ok(bookService.mapTransactionToBookResponse(transaction));
     }
 
     @GetMapping("/search")

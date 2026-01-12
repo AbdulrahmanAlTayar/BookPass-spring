@@ -29,4 +29,31 @@ public class UserService {
                 user.getCreatedAt()
         );
     }
+    public UserProfileResponse updateProfile(String email, com.bookpass.bookpass.dto.request.UpdateProfileRequest request) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (request.getFirstName() != null) user.setFirstName(request.getFirstName());
+        if (request.getLastName() != null) user.setLastName(request.getLastName());
+        if (request.getPhoneNumber() != null) user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getProfilePicture() != null) user.setProfilePicture(request.getProfilePicture());
+
+        if (request.getStoreName() != null) user.setStoreName(request.getStoreName());
+        if (request.getStoreAddress() != null) user.setStoreAddress(request.getStoreAddress());
+
+        userRepository.save(user);
+
+        return new UserProfileResponse(
+                user.getEmail(),
+                user.getFirstName(),
+                user.getLastName(),
+                user.getPhoneNumber(),
+                user.getProfilePicture(),
+                user.getRole(),
+                user.getSellerRating(),
+                user.getStoreName(),
+                user.getStoreAddress(),
+                user.getCreatedAt()
+        );
+    }
 }

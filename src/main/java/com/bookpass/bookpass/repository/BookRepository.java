@@ -18,6 +18,9 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
     // كتب البائع (الطالب)
     List<Book> findBySeller_UserId(UUID sellerId);
 
+    // كتب مخصصة لمكتبة معينة (للمراجعة)
+    List<Book> findByAssignedBookstore_UserIdAndStatusOrderByCreatedAtDesc(UUID bookstoreId, String status);
+
     // الكتب المتاحة والمراجعة للـ Home Page (مرتبة من الأحدث)
     @Query("SELECT b FROM Book b WHERE b.status = 'AVAILABLE' AND b.bookCondition IS NOT NULL ORDER BY b.createdAt DESC")
     List<Book> findAvailableReviewedBooks();

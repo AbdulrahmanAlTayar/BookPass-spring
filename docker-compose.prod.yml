@@ -1,0 +1,66 @@
+# =====================================================
+# BookPass Production Docker Compose
+# =====================================================
+# Usage: docker compose -f docker-compose.prod.yml up -d
+# =====================================================
+
+services:
+  # BookPass Backend Application
+  bookpass-backend:
+    image: ghcr.io/${GITHUB_USERNAME:-your-username}/bookpass-spring:latest
+    container_name: bookpass-backend
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    volumes:
+      - bookpass-uploads:/app/uploads
+    environment:
+      # Database (using Azure PostgreSQL)
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://bookpass.postgres.database.azure.com:5432/bookpass_db
+      - SPRING_DATASOURCE_USERNAME=bookpass
+      - SPRING_DATASOURCE_PASSWORD=${DB_PASSWORD}
+      - SPRING_DATASOURCE_HIKARI_SSL=true
+      # JWT
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=86400000
+      # Moyasar
+      - MOYASAR_SECRET_KEY=${MOYASAR_SECRET_KEY}
+      # Spring settings
+      - SPRING_DOCKER_COMPOSE_ENABLED=false
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - bookpass-network
+
+  # Watchtower - Automatic container updates
+  watchtower:
+    image: containrrr/watchtower
+    container_name: watchtower
+    restart: unless-stopped
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /root/.docker/config.json:/config.json:ro
+    environment:
+      - WATCHTOWER_CLEANUP=true
+      - WATCHTOWER_POLL_INTERVAL=300
+      - WATCHTOWER_INCLUDE_STOPPED=false
+      - WATCHTOWER_REVIVE_STOPPED=false
+      - WATCHTOWER_NOTIFICATIONS=shoutrrr
+      # Uncomment to enable Slack/Discord notifications:
+      # - WATCHTOWER_NOTIFICATION_URL=discord://token@channel
+    command: --interval 300 bookpass-backend
+    networks:
+      - bookpass-network
+
+volumes:
+  bookpass-uploads:
+    driver: local
+
+networks:
+  bookpass-network:
+    driver: bridge

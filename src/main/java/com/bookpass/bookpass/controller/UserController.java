@@ -22,4 +22,11 @@ public class UserController {
         UserProfileResponse profile = userService.getProfile(principal.getName());
         return ResponseEntity.ok(profile);
     }
+
+    @org.springframework.web.bind.annotation.PutMapping("/profile")
+    public ResponseEntity<UserProfileResponse> updateProfile(
+            @jakarta.validation.Valid @org.springframework.web.bind.annotation.RequestBody com.bookpass.bookpass.dto.request.UpdateProfileRequest request,
+            Principal principal) {
+        return ResponseEntity.ok(userService.updateProfile(principal.getName(), request));
+    }
 }
