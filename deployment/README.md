@@ -42,7 +42,7 @@ nano .env
 
 **Paste this into the .env file** (update values as needed):
 ```
-GITHUB_USERNAME=AbdulrahmanAlTayar
+GITHUB_USERNAME=abdulrahmanaltayar
 DB_PASSWORD=holbertonTuwaiq@
 JWT_SECRET=HolbertonTuwaiqSecretTokenXDtesttestewaidkmawidajwidadiapsddokawpdkmap
 MOYASAR_SECRET_KEY=sk_test_MittjgFyxXYRqsBzH6iFTFWwMX64NWv2tscsWAEm

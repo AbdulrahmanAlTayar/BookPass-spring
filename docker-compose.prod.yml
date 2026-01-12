@@ -7,7 +7,7 @@
 services:
   # BookPass Backend Application
   bookpass-backend:
-    image: ghcr.io/${GITHUB_USERNAME:-your-username}/bookpass-spring:latest
+    image: ghcr.io/${GITHUB_USERNAME:-abdulrahmanaltayar}/bookpass-spring:latest
     container_name: bookpass-backend
     restart: unless-stopped
     ports:
