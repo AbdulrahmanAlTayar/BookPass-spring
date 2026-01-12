@@ -1,0 +1,29 @@
+# Docker
+.docker/
+
+# Build artifacts in container
+target/
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment files (keep templates, ignore actual env files)
+.env
+.env.local
+.env.production
+
+# Test files
+*.test.js
+
+# Temporary files
+tmp/
+temp/
