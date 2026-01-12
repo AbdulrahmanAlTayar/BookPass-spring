@@ -26,11 +26,9 @@ public class CorsConfig {
             "http://127.0.0.1:5174",
             "http://127.0.0.1:5175",
             "http://127.0.0.1:3000",
-            "http://api.book-pass.com",
+            "https://api.book-pass.com",
             "https://book-pass.com",
-            "https://www.book-pass.com",
-           
-            
+            "https://www.book-pass.com"
         ));
 
         // Allow all common HTTP methods
