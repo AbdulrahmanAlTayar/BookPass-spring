@@ -12,6 +12,7 @@ on:
   push:
     branches:
       - main
+      - master
       - feat/update-books  # Your current feature branch
   workflow_dispatch:  # Allow manual trigger
 
