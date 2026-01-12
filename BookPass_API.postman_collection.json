@@ -1,0 +1,512 @@
+{
+    "info": {
+        "_postman_id": "b3e34b1a-2938-4829-93e1-229239129382",
+        "name": "BookPass API",
+        "description": "# BookPass API Documentation\n\nThis collection covers all backend API endpoints for the BookPass application, including the University Reviewer Hub features.\n\n## Authentication\nMost endpoints require a Bearer Token. \n1. Call **Register** or **Login** first.\n2. Copy the `token` from the response.\n3. The collection is configured to automatically use this token if you set it in the environment variable `token`, or you can manually add it to the Authorization tab.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Auth",
+            "item": [
+                {
+                    "name": "Register",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"student@ksu.edu.sa\",\n    \"password\": \"Password123\",\n    \"role\": \"CUSTOMER\",\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Ali\",\n    \"phoneNumber\": \"0501234567\",\n    \"profilePicture\": \"http://localhost:8080/api/files/ef864c96-1a19-4346-a091-b8b1efe8fcad.png\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/register",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "register"
+                            ]
+                        },
+                        "description": "Registers a new user (Student/Seller).\n\n**Body Parameters:**\n- `email`: Valid email address.\n- `password`: Strong password.\n- `role`: Must be `CUSTOMER` for standard users.\n- `profilePicture`: URL of the uploaded profile image (optional).\n\n**Response:** Returns the JWT token and user details."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Login",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "pm.environment.set(\"token\", jsonData.token);",
+                                    "console.log(\"Token set to:\", jsonData.token);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"student@ksu.edu.sa\",\n    \"password\": \"Password123\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Authenticates a user and returns a JWT token.\n\n**Note:** This request automatically sets the `token` environment variable for subsequent requests."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Books (General & Student)",
+            "item": [
+                {
+                    "name": "Add Book",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"title\": \"Calculus 101\",\n    \"description\": \"Used but in good condition\",\n    \"price\": 50.0,\n    \"author\": \"James Stewart\",\n    \"isbn\": \"9781234567890\",\n    \"university\": \"KSU\",\n    \"bookImages\": \"[\\\"http://localhost:8080/api/files/img1.jpg\\\"]\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books"
+                            ]
+                        },
+                        "description": "Adds a new book for sale.\n\n**Updates:**\n- `condition` is REMOVED. It is now auto-set to `PENDING`.\n- `university` should match one of the supported Saudi Universities.\n- The book will be automatically assigned to the University Reviewer via `assignedBookstore`.\n- Initial status will be set to `PENDING`."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Buy Book (With Payment)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"paymentId\": \"pay_1234567890\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/{bookId}/purchase",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "{bookId}",
+                                "purchase"
+                            ]
+                        },
+                        "description": "Purchases a book securely.\n\n**Body**:\n- `paymentId`: The ID returned by Moyasar's frontend widget.\n\n**Effect**:\n1. Server calls Moyasar API with Secret Key to verify payment status and amount.\n2. If valid, creates a `Transaction` and marks book as `SOLD`.\n3. Returns the updated Book object."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Available Books",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/available",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "available"
+                            ]
+                        },
+                        "description": "Returns a list of all books with status `AVAILABLE`. Used for the main browse page."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Search Books",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/search?query=calculus&type=title&university=KSU",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "search"
+                            ],
+                            "query": [
+                                {
+                                    "key": "query",
+                                    "value": "calculus",
+                                    "description": "Search term"
+                                },
+                                {
+                                    "key": "type",
+                                    "value": "title",
+                                    "description": "Search by: title, author, isbn"
+                                },
+                                {
+                                    "key": "university",
+                                    "value": "KSU",
+                                    "description": "Filter by university (optional)"
+                                }
+                            ]
+                        },
+                        "description": "Search for books with optional filtering."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get My Books",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/my-books",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "my-books"
+                            ]
+                        },
+                        "description": "Returns list of books posted by the currently logged-in user."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Store Dashboard (Reviewer)",
+            "description": "Endpoints for University Reviewers. Requires login with a Reviewer account (e.g., `reviewer@ksu.edu.sa` / `Test12341234`).",
+            "item": [
+                {
+                    "name": "Login Reviewer (KSU)",
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "exec": [
+                                    "var jsonData = pm.response.json();",
+                                    "pm.environment.set(\"token\", jsonData.token);"
+                                ],
+                                "type": "text/javascript"
+                            }
+                        }
+                    ],
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"email\": \"reviewer@ksu.edu.sa\",\n    \"password\": \"Test12341234\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/auth/login",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "auth",
+                                "login"
+                            ]
+                        },
+                        "description": "Helper request to login as the KSU Reviewer."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Store Pending Books",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/store/pending",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "store",
+                                "pending"
+                            ]
+                        },
+                        "description": "Returns all books assigned to the current reviewer's university that are pending review."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Review Book (Grade & Publish)",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"condition\": \"excellent\",\n    \"reviewNotes\": \"Checked covers and pages, looks good.\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/{bookId}/review",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "{bookId}",
+                                "review"
+                            ]
+                        },
+                        "description": "Reviewer grades the book and marks it as AVAILABLE.\n\n**Body:**\n- `condition`: Must be `excellent`, `very good`, `good`, or `poor`.\n- `reviewNotes`: Optional notes."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Store Sold Books",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/store/sold",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "store",
+                                "sold"
+                            ]
+                        },
+                        "description": "Returns all books assigned to the current reviewer's university that have been SOLD.\n\n**Response Includes:**\n- `buyerId`\n- `buyerName`\n- `buyerPhone`"
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Mark as Picked",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/books/{bookId}/picked",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "books",
+                                "{bookId}",
+                                "picked"
+                            ]
+                        },
+                        "description": "Reviewer marks a SOLD book as PICKED (Delivered).\n\n**Condition**: The book status must be `SOLD`."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "Files",
+            "item": [
+                {
+                    "name": "Upload File",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/files/upload",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "files",
+                                "upload"
+                            ]
+                        },
+                        "description": "Uploads an image file.\n\n**Body:** form-data with key `file`.\n**Response:** Returns the URL of the uploaded file."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get File",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/files/{filename}",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "files",
+                                "{filename}"
+                            ]
+                        },
+                        "description": "Retrieves the file content (image)."
+                    },
+                    "response": []
+                }
+            ]
+        },
+        {
+            "name": "User",
+            "item": [
+                {
+                    "name": "Get Profile",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "profile"
+                            ]
+                        },
+                        "description": "Returns the logged-in user's profile information."
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Update Profile",
+                    "request": {
+                        "method": "PUT",
+                        "header": [],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n    \"firstName\": \"Ahmed\",\n    \"lastName\": \"Updated\",\n    \"phoneNumber\": \"0509999999\",\n    \"profilePicture\": \"http://localhost:8080/api/files/new_avatar.jpg\"\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{baseUrl}}/api/user/profile",
+                            "host": [
+                                "{{baseUrl}}"
+                            ],
+                            "path": [
+                                "api",
+                                "user",
+                                "profile"
+                            ]
+                        },
+                        "description": "Updates the logged-in user's profile.\n\n**Fields (Optional):**\n- `firstName`\n- `lastName`\n- `phoneNumber`\n- `profilePicture` (URL)\n- `storeName` (For Bookstores)\n- `storeAddress` (For Bookstores)"
+                    },
+                    "response": []
+                }
+            ]
+        }
+    ],
+    "auth": {
+        "type": "bearer",
+        "bearer": [
+            {
+                "key": "token",
+                "value": "{{token}}",
+                "type": "string"
+            }
+        ]
+    },
+    "event": [
+        {
+            "listen": "prerequest",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        },
+        {
+            "listen": "test",
+            "script": {
+                "type": "text/javascript",
+                "exec": [
+                    ""
+                ]
+            }
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8080",
+            "type": "string"
+        }
+    ]
+}
