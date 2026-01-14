@@ -70,6 +70,15 @@ public class User {
     @Column(nullable = false)
     private String role = "CUSTOMER"; // CUSTOMER, BOOKSTORE, ADMIN
 
+    @Column(name = "iban")
+    private String iban;
+
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

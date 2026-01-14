@@ -18,7 +18,9 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+
     private final JwtUtil jwtUtil;
+    private final EmailService emailService;
 
     /**
      * Handles user registration
@@ -91,5 +93,46 @@ public class AuthService {
                 user.getRole(),
                 user.getSellerRating() // Seller rating for BOOKSTORE role
         );
+    }
+
+    /**
+     * Handles forgot password request
+     */
+    public void forgotPassword(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidCredentialsException("User not found"));
+
+        // Generate reset token
+        String resetToken = java.util.UUID.randomUUID().toString();
+        
+        // Save token and expiry (1 hour) to user
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiry(java.time.LocalDateTime.now().plusHours(1));
+        userRepository.save(user);
+
+        // Generate reset link (frontend URL)
+        // Assuming frontend is running on localhost:5173 or production URL
+        // ideally this base URL should be configurable
+        String resetLink = "http://localhost:5173/reset-password?token=" + resetToken;
+
+        // Send email
+        emailService.sendPasswordResetEmail(user.getEmail(), resetLink);
+    }
+
+    /**
+     * Handles reset password using token
+     */
+    public void resetPassword(String token, String newPassword) {
+        User user = userRepository.findByResetToken(token)
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid or expired reset token"));
+
+        if (user.getResetTokenExpiry().isBefore(java.time.LocalDateTime.now())) {
+            throw new InvalidCredentialsException("Reset token has expired");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        user.setResetToken(null);
+        user.setResetTokenExpiry(null);
+        userRepository.save(user);
     }
 }

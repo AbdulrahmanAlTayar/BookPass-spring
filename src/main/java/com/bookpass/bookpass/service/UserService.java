@@ -26,6 +26,7 @@ public class UserService {
                 user.getSellerRating(),
                 user.getStoreName(),
                 user.getStoreAddress(),
+                user.getIban(),
                 user.getCreatedAt()
         );
     }
@@ -40,6 +41,7 @@ public class UserService {
 
         if (request.getStoreName() != null) user.setStoreName(request.getStoreName());
         if (request.getStoreAddress() != null) user.setStoreAddress(request.getStoreAddress());
+        if (request.getIban() != null) user.setIban(request.getIban());
 
         userRepository.save(user);
 
@@ -53,6 +55,7 @@ public class UserService {
                 user.getSellerRating(),
                 user.getStoreName(),
                 user.getStoreAddress(),
+                user.getIban(),
                 user.getCreatedAt()
         );
     }

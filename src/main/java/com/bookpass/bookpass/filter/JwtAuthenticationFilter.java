@@ -18,6 +18,7 @@ import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
+@lombok.extern.slf4j.Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
@@ -31,12 +32,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String userEmail;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        String token = null;
+
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+            // log.info("Token found in Header");
+        } else {
+            // Check for cookie
+            if (request.getCookies() != null) {
+                for (jakarta.servlet.http.Cookie cookie : request.getCookies()) {
+                    if ("accessToken".equals(cookie.getName())) {
+                        token = cookie.getValue();
+                        // log.info("Token found in Cookie");
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (token == null) {
+            // log.debug("No token found in request to {}", request.getRequestURI());
             filterChain.doFilter(request, response);
             return;
         }
 
-        jwt = authHeader.substring(7);
+        jwt = token;
 
         try {
             userEmail = jwtUtil.extractEmail(jwt);
@@ -52,10 +72,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                    // log.debug("User authenticated: {}", userEmail);
                 }
             }
         } catch (Exception e) {
-            // Token invalid
+            log.error("JWT Authentication failed: {}", e.getMessage());
         }
 
         filterChain.doFilter(request, response);

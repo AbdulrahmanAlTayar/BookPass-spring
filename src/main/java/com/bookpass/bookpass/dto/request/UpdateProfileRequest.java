@@ -12,4 +12,7 @@ public class UpdateProfileRequest {
     // For Bookstore users
     private String storeName;
     private String storeAddress;
+    
+    // IBAN for payment purposes
+    private String iban;
 }
