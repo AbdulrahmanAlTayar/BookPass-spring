@@ -18,6 +18,14 @@ public interface BookRepository extends JpaRepository<Book, UUID> {
     // كتب البائع (الطالب)
     List<Book> findBySeller_UserId(UUID sellerId);
 
+    // Dashboard Stats
+    @Query("SELECT b.assignedBookstore, COUNT(b) FROM Book b GROUP BY b.assignedBookstore")
+    List<Object[]> countBooksByAssignedBookstore();
+
+    long countByStatus(String status);
+
+    List<Book> findTop5ByOrderByCreatedAtDesc();
+
     // كتب مخصصة لمكتبة معينة (للمراجعة)
     List<Book> findByAssignedBookstore_UserIdAndStatusOrderByCreatedAtDesc(UUID bookstoreId, String status);
 

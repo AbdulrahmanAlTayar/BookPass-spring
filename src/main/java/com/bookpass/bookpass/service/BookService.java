@@ -118,9 +118,18 @@ public class BookService {
      * Get pending books for current Bookstore Reviewer
      */
     public List<BookResponse> getStorePendingBooks(String email) {
-        User bookstore = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return bookRepository.findByAssignedBookstore_UserIdAndStatusOrderByCreatedAtDesc(bookstore.getUserId(), "PENDING")
+        
+        // If ADMIN, return all pending books
+        if ("ADMIN".equals(user.getRole())) {
+            return bookRepository.findByStatus("PENDING")
+                    .stream()
+                    .map(this::mapToBookResponse)
+                    .collect(Collectors.toList());
+        }
+
+        return bookRepository.findByAssignedBookstore_UserIdAndStatusOrderByCreatedAtDesc(user.getUserId(), "PENDING")
                 .stream()
                 .map(this::mapToBookResponse)
                 .collect(Collectors.toList());
@@ -130,11 +139,19 @@ public class BookService {
      * Get sold books for current Bookstore Reviewer (with buyer info)
      */
     public List<BookResponse> getStoreSoldBooks(String email) {
-        User bookstore = userRepository.findByEmail(email)
+        User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
+        // If ADMIN, return all sold books (COMPLETED transactions)
+        if ("ADMIN".equals(user.getRole())) {
+             return transactionRepository.findByStatusOrderByCreatedAtDesc("COMPLETED")
+                .stream()
+                .map(this::mapTransactionToBookResponse)
+                .collect(Collectors.toList());
+        }
+
         // Fetch transactions for this store's sold books
-        return transactionRepository.findByBook_AssignedBookstore_UserIdAndBook_StatusOrderByCreatedAtDesc(bookstore.getUserId(), "SOLD")
+        return transactionRepository.findByBook_AssignedBookstore_UserIdAndBook_StatusOrderByCreatedAtDesc(user.getUserId(), "SOLD")
                 .stream()
                 .map(transaction -> mapTransactionToBookResponse(transaction))
                 .collect(Collectors.toList());
@@ -144,20 +161,23 @@ public class BookService {
      * Review a book (Store Owner)
      */
     public BookResponse reviewBook(UUID bookId, String userEmail, ReviewBookRequest request) {
-        User bookstore = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
 
-        // Verify assignment
-        if (book.getAssignedBookstore() == null || !book.getAssignedBookstore().getUserId().equals(bookstore.getUserId())) {
+        // Verify assignment (Allow ADMIN to bypass)
+        boolean isAssigned = book.getAssignedBookstore() != null && book.getAssignedBookstore().getUserId().equals(user.getUserId());
+        boolean isAdmin = "ADMIN".equals(user.getRole());
+
+        if (!isAssigned && !isAdmin) {
              throw new RuntimeException("Not authorized to review this book");
         }
 
         book.setBookCondition(request.getCondition());
         book.setReviewNotes(request.getReviewNotes());
-        book.setReviewedBy(bookstore);
+        book.setReviewedBy(user);
         book.setReviewedAt(java.time.LocalDateTime.now());
         
         // Once reviewed, it becomes AVAILABLE
@@ -171,14 +191,17 @@ public class BookService {
      * Mark a book as PICKED (Store Owner) - for books that were SOLD
      */
     public BookResponse markAsPicked(UUID bookId, String userEmail) {
-        User bookstore = userRepository.findByEmail(userEmail)
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Book book = bookRepository.findById(bookId)
                 .orElseThrow(() -> new RuntimeException("Book not found"));
 
-        // Verify assignment
-        if (book.getAssignedBookstore() == null || !book.getAssignedBookstore().getUserId().equals(bookstore.getUserId())) {
+        // Verify assignment (Allow ADMIN to bypass)
+        boolean isAssigned = book.getAssignedBookstore() != null && book.getAssignedBookstore().getUserId().equals(user.getUserId());
+        boolean isAdmin = "ADMIN".equals(user.getRole());
+
+        if (!isAssigned && !isAdmin) {
             throw new RuntimeException("Not authorized to manage this book");
         }
 
