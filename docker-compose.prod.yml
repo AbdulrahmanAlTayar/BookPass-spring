@@ -27,8 +27,6 @@ services:
       - JWT_EXPIRATION=86400000
       # Moyasar
       - MOYASAR_SECRET_KEY=${MOYASAR_SECRET_KEY}
-      # Resend (email)
-      - RESEND_API_KEY=${RESEND_API_KEY}
       # Spring settings
       - SPRING_DOCKER_COMPOSE_ENABLED=false
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
