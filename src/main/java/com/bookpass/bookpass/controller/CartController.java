@@ -1,10 +1,12 @@
 package com.bookpass.bookpass.controller;
 
+import com.bookpass.bookpass.dto.request.AddToCartRequest;
 import com.bookpass.bookpass.dto.request.CartCheckoutRequest;
 import com.bookpass.bookpass.dto.response.BookResponse;
 import com.bookpass.bookpass.dto.response.CartCheckoutResponse;
 import com.bookpass.bookpass.entity.Transaction;
 import com.bookpass.bookpass.service.BookService;
+import com.bookpass.bookpass.service.CartService;
 import com.bookpass.bookpass.service.TransactionService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @RestController
@@ -23,6 +26,33 @@ public class CartController {
 
     private final TransactionService transactionService;
     private final BookService bookService;
+    private final CartService cartService;
+
+    /**
+     * Get user's cart
+     */
+    @GetMapping
+    public ResponseEntity<List<BookResponse>> getCart(Principal principal) {
+        return ResponseEntity.ok(cartService.getCart(principal.getName()));
+    }
+
+    /**
+     * Add data to cart
+     */
+    @PostMapping
+    public ResponseEntity<Void> addToCart(@RequestBody AddToCartRequest request, Principal principal) {
+        cartService.addToCart(principal.getName(), request.getBookId());
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Remove from cart
+     */
+    @DeleteMapping("/{bookId}")
+    public ResponseEntity<Void> removeFromCart(@PathVariable UUID bookId, Principal principal) {
+        cartService.removeFromCart(principal.getName(), bookId);
+        return ResponseEntity.ok().build();
+    }
 
     /**
      * Checkout cart - purchase multiple books with a single payment

@@ -17,6 +17,7 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         return new UserProfileResponse(
+                user.getUserId(),
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
@@ -46,6 +47,7 @@ public class UserService {
         userRepository.save(user);
 
         return new UserProfileResponse(
+                user.getUserId(),
                 user.getEmail(),
                 user.getFirstName(),
                 user.getLastName(),
