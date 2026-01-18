@@ -14,6 +14,8 @@ services:
       - "8080:8080"
     volumes:
       - bookpass-uploads:/app/uploads
+    env_file:
+      - .env
     environment:
       # Database (using Azure PostgreSQL)
       - SPRING_DATASOURCE_URL=jdbc:postgresql://bookpass.postgres.database.azure.com:5432/bookpass_db
