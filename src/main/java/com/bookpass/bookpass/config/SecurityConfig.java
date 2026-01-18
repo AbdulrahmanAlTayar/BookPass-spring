@@ -41,7 +41,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/books/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/files/**").permitAll()
                         // Swagger UI & OpenAPI
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/api/doc/**").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
                         .anyRequest().authenticated()
                 )
