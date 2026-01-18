@@ -29,6 +29,7 @@ services:
       - MOYASAR_SECRET_KEY=${MOYASAR_SECRET_KEY}
       # Resend (email)
       - RESEND_API_KEY=${RESEND_API_KEY}
+      - CHECK_ENV_TEST=${CHECK_ENV_TEST}
       # Spring settings
       - SPRING_DOCKER_COMPOSE_ENABLED=false
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
