@@ -55,7 +55,7 @@ services:
       - WATCHTOWER_NOTIFICATIONS=shoutrrr
       # Uncomment to enable Slack/Discord notifications:
       # - WATCHTOWER_NOTIFICATION_URL=discord://token@channel
-    command: --interval 300 bookpass-backend
+    command: --interval 300
     networks:
       - bookpass-network
 
