@@ -41,7 +41,7 @@ public class User {
     @Column(name = "profile_picture", columnDefinition = "TEXT")
     private String profilePicture;
 
-    // موقع المستخدم
+    // user Location
     @Column(name = "latitude")
     private Double latitude;
 
@@ -63,7 +63,7 @@ public class User {
     @Column(name = "store_longitude")
     private Double storeLongitude;
 
-    // تقييم البائع
+    // seller review
     @Column(name = "seller_rating")
     private BigDecimal sellerRating;
 

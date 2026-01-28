@@ -52,12 +52,12 @@ public class Book {
     @Column(name = "book_images", columnDefinition = "TEXT")
     private String bookImages;
 
-    //  (أقرب مكتبة للبائع)
+    //  (Closest library to the user)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_bookstore_id")
     private User assignedBookstore;
 
-    // حالة الكتاب بعد مراجعة المكتبة
+    // Book condition after library check
     @Column(name = "book_condition")
     @jakarta.validation.constraints.Pattern(regexp = "excellent|very good|good|poor|PENDING", message = "Condition must be excellent, very good, good, poor, or PENDING")
     private String bookCondition;
